@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="pt">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>UriTrack</title>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar">
+        <div class="brand">
+          <div class="brand-mark">U</div>
+          <div>
+            <h1>UriTrack</h1>
+            <p>Monitorização vesical</p>
+          </div>
+        </div>
+
+        <nav class="nav-tabs" aria-label="Secções da aplicação">
+          <button class="nav-tab active" data-view="dashboard" type="button">Painel</button>
+          <button class="nav-tab" data-view="patient" type="button">Paciente</button>
+          <button class="nav-tab" data-view="history" type="button">Micções</button>
+          <button class="nav-tab" data-view="reports" type="button">Relatórios</button>
+        </nav>
+
+        <section class="connection-card">
+          <div>
+            <span class="label">Sensor BLE</span>
+            <strong id="connectionState">Desligado</strong>
+          </div>
+          <div class="button-row">
+            <button id="connectBleBtn" class="primary" type="button">Ligar BLE</button>
+            <button id="simulateBtn" type="button">Simular</button>
+          </div>
+        </section>
+      </aside>
+
+      <main>
+        <section id="dashboard" class="view active">
+          <header class="page-header">
+            <div>
+              <p class="eyebrow">Tempo real</p>
+              <h2>Estado atual da bexiga</h2>
+            </div>
+            <div id="alertBanner" class="alert-banner neutral">A aguardar dados do sensor</div>
+          </header>
+
+          <div class="dashboard-grid">
+            <section class="fill-panel">
+              <div class="battery-wrap" aria-label="Indicador de enchimento da bexiga">
+                <div class="battery-cap"></div>
+                <div class="battery">
+                  <div id="batteryFill" class="battery-fill"></div>
+                  <span id="fillPercent">0%</span>
+                </div>
+              </div>
+              <p class="scale-note">Escala calculada pela pressão de referência entre 5 e 25 cmH2O.</p>
+            </section>
+
+            <section class="metrics-panel">
+              <article>
+                <span>Pressão estimada</span>
+                <strong><span id="pressureValue">--</span> cmH2O</strong>
+              </article>
+              <article>
+                <span>Volume urinário</span>
+                <strong><span id="volumeValue">--</span> mL</strong>
+              </article>
+              <article>
+                <span>Bioimpedância</span>
+                <strong><span id="impedanceValue">--</span> ohm</strong>
+              </article>
+              <article>
+                <span>Última leitura</span>
+                <strong id="lastReading">--</strong>
+              </article>
+            </section>
+          </div>
+
+          <section class="trend-band">
+            <div class="section-title">
+              <h3>Tendência em tempo real</h3>
+              <span>Últimas 60 leituras</span>
+            </div>
+            <canvas id="liveChart" width="900" height="260"></canvas>
+          </section>
+        </section>
+
+        <section id="patient" class="view">
+          <header class="page-header">
+            <div>
+              <p class="eyebrow">Registo clínico</p>
+              <h2>Dados do paciente</h2>
+            </div>
+            <button id="savePatientBtn" class="primary" type="button">Guardar</button>
+          </header>
+
+          <form id="patientForm" class="form-grid">
+            <label>Nome completo
+              <input id="patientName" autocomplete="name" required>
+            </label>
+            <label>Idade
+              <input id="patientAge" type="number" min="0" max="120">
+            </label>
+            <label>Sexo
+              <select id="patientSex">
+                <option value="">Selecionar</option>
+                <option>Feminino</option>
+                <option>Masculino</option>
+                <option>Intersexo</option>
+                <option>Outro</option>
+              </select>
+            </label>
+            <label>Condição clínica
+              <input id="patientCondition">
+            </label>
+            <label class="wide">Tipo de lesão ou diagnóstico associado
+              <textarea id="patientDiagnosis" rows="5"></textarea>
+            </label>
+          </form>
+        </section>
+
+        <section id="history" class="view">
+          <header class="page-header">
+            <div>
+              <p class="eyebrow">Histórico</p>
+              <h2>Micções e esvaziamentos</h2>
+            </div>
+            <button id="addVoidingBtn" class="primary" type="button">Registar micção</button>
+          </header>
+
+          <form id="voidingForm" class="voiding-form">
+            <label>Volume retirado (mL)
+              <input id="actualVolume" type="number" min="0" step="1" placeholder="Ex.: 220">
+            </label>
+            <button type="submit">Confirmar registo</button>
+          </form>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Data e hora</th>
+                  <th>Volume estimado antes</th>
+                  <th>Volume retirado</th>
+                  <th>Pressão no momento</th>
+                </tr>
+              </thead>
+              <tbody id="historyBody"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section id="reports" class="view">
+          <header class="page-header">
+            <div>
+              <p class="eyebrow">Relatórios</p>
+              <h2>Tendências e estatísticas</h2>
+            </div>
+            <button id="exportPdfBtn" class="primary" type="button">Exportar PDF</button>
+          </header>
+
+          <div class="stats-grid">
+            <article>
+              <span>Pressão média</span>
+              <strong id="avgPressure">-- cmH2O</strong>
+            </article>
+            <article>
+              <span>Volume médio pré-esvaziamento</span>
+              <strong id="avgPreVolume">-- mL</strong>
+            </article>
+            <article>
+              <span>Total retirado</span>
+              <strong id="totalRemoved">-- mL</strong>
+            </article>
+            <article>
+              <span>Eventos de alerta</span>
+              <strong id="alertCount">0</strong>
+            </article>
+          </div>
+
+          <section class="trend-band">
+            <div class="section-title">
+              <h3>Tendência histórica</h3>
+              <span>Pressão e volume estimado</span>
+            </div>
+            <canvas id="reportChart" width="900" height="320"></canvas>
+          </section>
+        </section>
+      </main>
+    </div>
+
+    <script src="app.js"></script>
+  </body>
+</html>
